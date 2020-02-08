@@ -24,7 +24,9 @@ public class APIHelper {
 
         HttpResponse<JsonNode> response = null;
         try {
-            response = (HttpResponse<JsonNode>)  Unirest.post("https://paiza-io.p.rapidapi.com/runners/create?language="+language+"&source_code="+sourceCode)
+            response = (HttpResponse<JsonNode>)  Unirest.post("https://paiza-io.p.rapidapi.com/runners/create?")
+                    .header("language","java")
+                    .header("source_code","public class Main {public static void main(String args[]){System.out.println(\"Hello, World\");}}")
                     .header("x-rapidapi-host", "paiza-io.p.rapidapi.com")
                     .header("x-rapidapi-key", API_KEY)
                     .header("content-type", "application/x-www-form-urlencoded")
