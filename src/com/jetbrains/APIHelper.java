@@ -1,58 +1,75 @@
 package com.jetbrains;
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 
 
 public class APIHelper {
-    private final String API_KEY = "206b7b76d9mshb6be6765ab68d57p192c16jsn39b47c2f5337";
+    private final String clientId = "d4e9830832787b74844195a806a95e27";
+    private final String clientSecret = "9e405949dca1213a2826330e819f3bfc8b5645b5c62c0f7610f2deb6e9ae7b97";
     private static APIHelper apiManager = null;
 
-    private APIHelper(){
+    private APIHelper() {
 
     }
 
-    public static APIHelper getInstance(){
-        if(apiManager == null)
-            apiManager  = new APIHelper();
+    public static APIHelper getInstance() {
+        if (apiManager == null)
+            apiManager = new APIHelper();
 
         return apiManager;
     }
 
-    public HttpResponse<JsonNode> request(String language,String sourceCode){
+    public void request(SourceCode sourceCode) {
 
-        HttpResponse<JsonNode> response = null;
         try {
-            response = (HttpResponse<JsonNode>)  Unirest.post("https://paiza-io.p.rapidapi.com/runners/create?")
-                    .header("language","java")
-                    .header("source_code","public class Main {public static void main(String args[]){System.out.println(\"Hello, World\");}}")
-                    .header("x-rapidapi-host", "paiza-io.p.rapidapi.com")
-                    .header("x-rapidapi-key", API_KEY)
-                    .header("content-type", "application/x-www-form-urlencoded")
-                    .asJson();
-        } catch (UnirestException e) {
+            URL url = new URL("https://api.jdoodle.com/v1/execute");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            String input = "{\"clientId\": \"" + clientId + "\",\"clientSecret\":\"" + clientSecret + "\",\"script\":\"" + sourceCode.toString() +
+                    "\",\"language\":\"" + sourceCode.getLanguage().getName() + "\",\"versionIndex\":\"" + sourceCode.getLanguage().getVersionIndex() + "\"} ";
+
+
+            System.out.println(input);
+
+            OutputStream outputStream = connection.getOutputStream();
+            outputStream.write(input.getBytes());
+            outputStream.flush();
+
+
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                throw new RuntimeException("Please check your inputs : HTTP error code : " + connection.getResponseCode());
+            }
+
+            BufferedReader bufferedReader;
+            bufferedReader = new BufferedReader(new InputStreamReader(
+                    (connection.getInputStream())));
+
+            String output;
+            System.out.println("Output from JDoodle .... \n");
+            while ((output = bufferedReader.readLine()) != null) {
+                System.out.println(output);
+            }
+
+            connection.disconnect();
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return response;
-
-    }
-
-    public HttpResponse<JsonNode> getDetails (String id){
-
-
-        HttpResponse<JsonNode> response = null;
-        try {
-            response = Unirest.get("https://paiza-io.p.rapidapi.com/runners/get_details?id="+id)
-                    .header("x-rapidapi-host", "paiza-io.p.rapidapi.com")
-                    .header("x-rapidapi-key", API_KEY)
-                    .asJson();
-        }catch (UnirestException e) {
-            e.printStackTrace();
-        }
-
-        return response;
 
     }
 }

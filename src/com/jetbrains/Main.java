@@ -1,39 +1,66 @@
 package com.jetbrains;
+import org.apache.commons.lang.StringEscapeUtils;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
-import org.json.JSONObject;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.*;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        APIHelper apiManager = APIHelper.getInstance();
-        Decoder decoderManager = Decoder.getInstance();
-        Scanner scan = new Scanner(System.in);
-        System.out.println("Enter language");
-        String language = scan.nextLine().toLowerCase();
-        System.out.println("Enter source code");
-        String sourceCode = scan.nextLine();
-        System.out.println("public class Main {public static void main(String args[]){System.out.println(\"Hello, World\");}}");
-        String encodedSourceCode = decoderManager.encodeValue(sourceCode);
+            BufferedReader br = null;
+            Reader r = new InputStreamReader(System.in);
+            br = new BufferedReader(r);
+            ArrayList<String> tokens = new ArrayList<String>();
+            APIHelper apiManager = APIHelper.getInstance();
+
+            String str = null;
+            String escapedStr = null;
+            String languageText = null;
+            String versionIndex = null;
+
+            try {
+                System.out.println("Enter the inputs. After entering the source code , please write 'exit'");
+
+                System.out.print("Enter language : ");
+                languageText = br.readLine().toLowerCase();
+
+                System.out.print("Enter versionIndex : ");
+                versionIndex = br.readLine();
+
+                System.out.println("Enter source code : ");
 
 
-        HttpResponse<JsonNode> response =  apiManager.request(language,encodedSourceCode);
-        JSONObject object = decoderManager.getJSON(response);
+                do{
+                    str = br.readLine();
+                    escapedStr = StringEscapeUtils.escapeJava(str);
+                    tokens.add(escapedStr);
 
-        String error = decoderManager.getError(object);
+                } while (!str.equalsIgnoreCase("exit"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally{
+                try{
+                    if(br != null) br.close();
+                }catch(Exception ex){}
+            }
 
-        if(error == null){
-            String id = decoderManager.getID(object);
-            String status = decoderManager.getStatus(object);
 
-            response = apiManager.getDetails(id);
-            object = decoderManager.getJSON(response);
+            tokens.remove(tokens.size()-1);
+
+            ProgrammingLanguage language = new ProgrammingLanguage(languageText,versionIndex);
+            SourceCode sourceCode = new SourceCode(tokens,language);
+
+            apiManager.request(sourceCode);
 
 
-        }
+
+
 
     }
+
+
 }
