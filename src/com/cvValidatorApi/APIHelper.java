@@ -1,4 +1,5 @@
-package com.jetbrains;
+package com.cvValidatorApi;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,7 +27,7 @@ public class APIHelper {
         return apiManager;
     }
 
-    public void request(SourceCode sourceCode) {
+    public JSONObject request(SourceCode sourceCode) {
 
         try {
             URL url = new URL("https://api.jdoodle.com/v1/execute");
@@ -39,7 +40,7 @@ public class APIHelper {
                     "\",\"language\":\"" + sourceCode.getLanguage().getName() + "\",\"versionIndex\":\"" + sourceCode.getLanguage().getVersionIndex() + "\"} ";
 
 
-            System.out.println(input);
+            //System.out.println(input);
 
             OutputStream outputStream = connection.getOutputStream();
             outputStream.write(input.getBytes());
@@ -50,6 +51,8 @@ public class APIHelper {
                 throw new RuntimeException("Please check your inputs : HTTP error code : " + connection.getResponseCode());
             }
 
+            StringBuilder sb = new StringBuilder();
+
             BufferedReader bufferedReader;
             bufferedReader = new BufferedReader(new InputStreamReader(
                     (connection.getInputStream())));
@@ -57,10 +60,14 @@ public class APIHelper {
             String output;
             System.out.println("Output from JDoodle .... \n");
             while ((output = bufferedReader.readLine()) != null) {
-                System.out.println(output);
+                sb.append(output);
             }
 
+
+
             connection.disconnect();
+            JSONObject json = new JSONObject(sb.toString());
+            return json;
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -70,6 +77,8 @@ public class APIHelper {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return  null;
 
     }
 }

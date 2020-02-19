@@ -1,4 +1,4 @@
-package com.jetbrains;
+package com.cvValidatorApi;
 
 import java.util.ArrayList;
 import java.util.Iterator;

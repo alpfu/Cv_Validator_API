@@ -1,4 +1,4 @@
-package com.jetbrains;
+package com.cvValidatorApi;
 
 public class ProgrammingLanguage {
     String name;
